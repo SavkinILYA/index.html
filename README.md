@@ -21,7 +21,9 @@
 
 ```mermaid
 flowchart TD
-    A[Приложение\nили API] --> B[Proxy / Router\nVitess │ ProxySQL │ MySQL Router]
+    A[Приложение
+или API] --> B[Proxy / Router
+Vitess │ ProxySQL │ MySQL Router]
 
     subgraph Shard1 ["Шард 1\n(shop_id % 8 = 0–1)"]
         direction TB
