@@ -25,7 +25,8 @@ flowchart TD
 или API] --> B[Proxy / Router
 Vitess │ ProxySQL │ MySQL Router]
 
-    subgraph Shard1 ["Шард 1\n(shop_id % 8 = 0–1)"]
+    subgraph Shard1 ["Шард 1
+(shop_id % 8 = 0–1)"]
         direction TB
         M1[(Master-1)]:::master
         R1a[(Replica)]:::replica
@@ -34,7 +35,10 @@ Vitess │ ProxySQL │ MySQL Router]
         M1 --> R1a & R1b & R1c
     end
 
-    subgraph Shard2 ["Шард 2\n(shop_id % 8 = 2–3)"]
+    subgraph Shard2 ["Шард 2
+(shop_id % 8 = 2–3)"]
+
+
         direction TB
         M2[(Master-2)]:::master
         R2a[(Replica)]:::replica
@@ -42,7 +46,10 @@ Vitess │ ProxySQL │ MySQL Router]
         M2 --> R2a & R2b
     end
 
-    subgraph ShardN ["Шард N\n(shop_id % 8 = 6–7)"]
+    subgraph ShardN ["Шард N
+(shop_id % 8 = 6–7)"]
+
+
         direction TB
         MN[(Master-N)]:::master
         RNa[(Replica)]:::replica
@@ -50,7 +57,11 @@ Vitess │ ProxySQL │ MySQL Router]
         MN --> RNa & RNb
     end
 
-    subgraph Global ["Global Shard\nсправочные данные\nкатегории, страны и т.д."]
+    subgraph Global ["Global Shard
+справочные данные
+категории, страны и т.д."]
+
+
         direction TB
         GR1[(Read-Replica)]:::global
         GR2[(Read-Replica)]:::global
