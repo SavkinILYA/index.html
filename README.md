@@ -1,94 +1,59 @@
-# index.html
-<!DOCTYPE html>
-<html>
-    <head>
-     <!-- BEGIN -->
-<!DOCTYPE html>
-<html>
+# Домашнее задание к занятию «Репликация и масштабирование. Часть 2» - Савкин И.Н.
 
-  <head>
-    <meta charset="UTF-8">
-    <link rel="stylesheet" type="text/css" href="style.css">
-    <title>Резюме Илья Савкин</title>
-  </head>
+## Задание 1. Преимущества разных схем репликации
 
-  <body>
-    <div id="header">
-      <h1>Илья Савкин</h1>
-      <h3>Веб-разработчик</h3>
-      <p>
-        <a href="ilya-savkin@mail.ru">ilya-savkin@mail.ru</a>,
-        <a href="ilyasavkin1992@gmail.com">ilyasavkin1992@gmail.com</a>
-      </p>
-    </div>
+### 1. Активный Master + пассивный Slave (hot standby) Slave
+**Основные преимущества:**
+- Высокая доступность записи: при падении Master можно за секунды–минуты переключить приложение на Slave (failover).
+- Нулевая или почти нулевая потеря данных при использовании semi-sync replication.
+- Slave можно использовать для бэкапов, аналитики и тяжёлых отчётов без нагрузки на основной сервер.
+- Простая и быстрая настройка автоматического переключения (MHA, Orchestrator, ProxySQL).
 
-    <div id="main">
-      <p>
-        Окончил Московский авиационный институт, по специальности инженер, работаю инженером конструктором ПАО"Ил" уже около года, после курсов на
-		Хакслете планирую сменить профессию и начать свой путь в сфере IT.
-      </p>
+### 2. Один Master + несколько Slave-серверов
+**Основные преимущества:**
+- Масштабирование чтения: каждый новый Slave увеличивает пропускную способность SELECT-запросов.
+- Геораспределение: можно разместить реплики в разных регионах → низкая задержка для пользователей.
+- Разделение нагрузки: отдельные Slave под аналитику, поиск, отчёты, бэкапы.
+- Лёгкое горизонтальное масштабирование: добавил ещё один Slave — получил +20–50 % производительности на чтение.
 
-      <p>
-        Готов к удаленной работе и релокации.
-      </p>
 
-      <div class="main_section">
-        <h2>Опыт работы</h2>
+## Задание 2. План вертикального и горизонтального масштабирования + шардинг
 
-        <div class="main_section_item">
-          <h3>Майкрософт Россия</h3>
-          <p>Программист (стажировка), <i>апрель 2016 — ноябрь 2016</i></p>
-          <ul>
-            <li>Работа в команде на C#</li>
-            <li>Создание веб-сайта проекта JDX</li>
-          </ul>
-        </div>
+```mermaid
+graph TD
+    A[Приложение] --> B(Proxy/Router);
+    B --(Запросы на запись)---> SM(Shard Master);
+    B --(Запросы на чтение)---> SR(Shard Replicas);
+    B --(Глобальные запросы)---> GR(Global Read-Replicas);
 
-        <div class="main_section_item">
-          <h3>ПАО "ИЛ"</h3>
-          <p>Веб-дизайн, <i>январь 2015 — апрель 2016</i></p>
-          <ul>
-            <li>Верстка макетов</li>
-            <li>Разработка тем для Wordpress</li>
-            <li>Поддержка сайта</li>
-          </ul>
-        </div>
-      </div>
+    subgraph "Шарды данных (на основе shop_id)"
+        direction LR
+        SM1[Shard 1 Master] -- Репликация --> SR1A(Shard 1 Replica A);
+        SM1 --> SR1B(Shard 1 Replica B);
 
-      <div class="main_section">
-        <h2>Образование</h2>
+        SM2[Shard 2 Master] -- Репликация --> SR2A(Shard 2 Replica A);
+        SM2 --> SR2B(Shard 2 Replica B);
 
-        <div class="main_section_item">
-          <h3>МАИ</h3>
-          <p>специалист, эксплуатация космических летательных аппаратов, разгонных блоков <i>2012 —  2016</i></p>
-        </div>
+        SMN[Shard N Master] -- Репликация --> SRNA(Shard N Replica A);
+        SMN --> SRNB(Shard N Replica B);
+    end
 
-        <div class="main_section_item">
-          <h3>Хекслет</h3>
-          <p>Курсы по программированию, JS Backend/Frontend, <i>2015 — 2017</i></p>
-        </div>
-      </div>
+    subgraph "Глобальный Шард (Справочные данные)"
+        direction LR
+        GR1[Global Replica 1]
+        GR2[Global Replica 2]
+        GR3[Global Replica 3]
+    end
 
-      <div class="main_section">
-        <h2>Другие навыки и увлечения</h2>
+    classDef masterNode fill:#FFF3CD,stroke:#664D03,stroke-width:2;
+    classDef replicaNode fill:#E9ECEF,stroke:#6C757D,stroke-width:2;
+    classDef globalNode fill:#DAE5F0,stroke:#0C4F7F,stroke-width:2;
+    classDef proxyNode fill:#F8D7DA,stroke:#721C24,stroke-width:2;
+    classDef appNode fill:#D1E7DD,stroke:#0A3622,stroke-width:2;
 
-        <div class="main_section_item">
-          <ul>
-            <li>Основы дизайна и типографики</li>
-            <li>Любительская игра на гитаре</li>
-            <li>Хоккей на траве (городская лига)</li>
-          </ul>
-        </div>
-      </div>
-
-    </div>
-
-    <div id="footer">
-      <strong>Илья Савкин</strong>
-      <br/>
-      ул. Фестивальная д.4/3, Москва , +7(903)131-51-33 <a href="ilya-savkin@mail.ru">ilya-savkin@mail.ru</a>
-    </div>
-
-  </body>
-</html>
-<!-- END -->
+    class A appNode;
+    class B proxyNode;
+    class SM1,SM2,SMN masterNode;
+    class SR1A,SR1B,SR2A,SR2B,SRNA,SRNB replicaNode;
+    class GR1,GR2,GR3 globalNode;
+```
