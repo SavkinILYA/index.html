@@ -19,54 +19,55 @@
 
 ## Задание 2. Блок-схема архитектуры с шардингом
 
+## Задание 2. Блок-схема архитектуры с шардингом
+
 ```mermaid
 flowchart TD
-    %% Клиенты и прокси
-    A[Приложение / API] --> B[Proxy / Router\n(Vitess / ProxySQL / MySQL Router)]
+    %% Клиенты
+    App[Приложение / API] --> Proxy[Proxy / Router<br/>(Vitess / ProxySQL / MySQL Router)]
 
     %% Шарды
-    subgraph Shard_1 [Шард 1 (shop_id % 8 = 0,1)]
-        M1[(Master-1\nserver-id=101)]
-        R1a[(Replica-1)]
-        R1b[(Replica-2)]
-        R1c[(Replica-3)]
-        M1 --> R1a & R1b & R1c
+    subgraph Shard1 ["Шард 1 (shop_id % 8 = 0–1)"]
+        direction TB
+        Master1[(Master-1<br/>server-id=101)]:::master
+        Replica1a[(Replica)]:::replica
+        Replica1b[(Replica)]:::replica
+        Replica1c[(Replica)]:::replica
+        Master1 --> Replica1a & Replica1b & Replica1c
     end
 
-    subgraph Shard_2 [Шард 2 (shop_id % 8 = 2,3)]
-        M2[(Master-2\nserver-id=102)]
-        R2a[(Replica-1)]
-        R2b[(Replica-2)]
-        M2 --> R2a & R2b
+    subgraph Shard2 ["Шард 2 (shop_id % 8 = 2–3)"]
+        direction TB
+        Master2[(Master-2<br/>server-id=102)]:::master
+        Replica2a[(Replica)]:::replica
+        Replica2b[(Replica)]:::replica
+        Master2 --> Replica2a & Replica2b
     end
 
-    subgraph Shard_N [Шард N (shop_id % 8 = 6,7)]
-        MN[(Master-N\nserver-id=10N)]
-        RNa[(Replica-1)]
-        RNb[(Replica-2)]
-        MN --> RNa & RNb
+    subgraph ShardN ["Шард N (shop_id % 8 = 6–7)"]
+        direction TB
+        MasterN[(Master-N)]:::master
+        ReplicaNa[(Replica)]:::replica
+        ReplicaNb[(Replica)]:::replica
+        MasterN --> ReplicaNa & ReplicaNb
     end
 
-    subgraph Global_Shard [Global Shard — справочные данные]
-        GR1[(Read-Replica-1)]
-        GR2[(Read-Replica-2)]
-        GR3[(Read-Replica-3)]
+    subgraph Global ["Global Shard<br/>(справочные данные)"]
+        direction TB
+        GReplica1[(Read-Replica)]:::global
+        GReplica2[(Read-Replica)]:::global
     end
 
     %% Связи
-    B --> Shard_1
-    B --> Shard_2
-    B --> Shard_N
-    B --> Global_Shard
+    Proxy --> Shard1
+    Proxy --> Shard2
+    Proxy --> ShardN
+    Proxy --> Global
 
     %% Стили
-    classDef master fill:#f46666,stroke:#333,color:white
-    classDef replica fill:#66b3ff,stroke:#333,color:white
-    classDef proxy fill:#ffcc00,stroke:#333,color:black
-    classDef global fill:#95e1d3,stroke:#333,color:black
-
-    class M1,M2,MN master
-    class R1a,R1b,R1c,R2a,R2b,RNa,RNb,GR1,GR2,GR3 replica
-    class B proxy
-    class Global_Shard global
+    classDef master fill:#f44336,stroke:#900,color:#fff
+    classDef replica fill:#2196F3,stroke:#1976D2,color:#fff
+    classDef global fill:#4CAF50,stroke:#388E3C,color:#fff
+    classDef proxy fill:#FF9800,stroke:#F57C00,color:#000
+    class Proxy proxy
 ```
