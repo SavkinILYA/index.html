@@ -17,43 +17,56 @@
 - Лёгкое горизонтальное масштабирование: добавил ещё один Slave — получил +20–50 % производительности на чтение.
 
 
-## Задание 2. План вертикального и горизонтального масштабирования + шардинг
+## Задание 2. Блок-схема архитектуры с шардингом
 
 ```mermaid
-graph TD
-    A[Приложение] --> B(Proxy/Router);
-    B --(Запросы на запись)---> SM(Shard Master);
-    B --(Запросы на чтение)---> SR(Shard Replicas);
-    B --(Глобальные запросы)---> GR(Global Read-Replicas);
+flowchart TD
+    %% Клиенты и прокси
+    A[Приложение / API] --> B[Proxy / Router\n(Vitess / ProxySQL / MySQL Router)]
 
-    subgraph "Шарды данных (на основе shop_id)"
-        direction LR
-        SM1[Shard 1 Master] -- Репликация --> SR1A(Shard 1 Replica A);
-        SM1 --> SR1B(Shard 1 Replica B);
-
-        SM2[Shard 2 Master] -- Репликация --> SR2A(Shard 2 Replica A);
-        SM2 --> SR2B(Shard 2 Replica B);
-
-        SMN[Shard N Master] -- Репликация --> SRNA(Shard N Replica A);
-        SMN --> SRNB(Shard N Replica B);
+    %% Шарды
+    subgraph Shard_1 [Шард 1 (shop_id % 8 = 0,1)]
+        M1[(Master-1\nserver-id=101)]
+        R1a[(Replica-1)]
+        R1b[(Replica-2)]
+        R1c[(Replica-3)]
+        M1 --> R1a & R1b & R1c
     end
 
-    subgraph "Глобальный Шард (Справочные данные)"
-        direction LR
-        GR1[Global Replica 1]
-        GR2[Global Replica 2]
-        GR3[Global Replica 3]
+    subgraph Shard_2 [Шард 2 (shop_id % 8 = 2,3)]
+        M2[(Master-2\nserver-id=102)]
+        R2a[(Replica-1)]
+        R2b[(Replica-2)]
+        M2 --> R2a & R2b
     end
 
-    classDef masterNode fill:#FFF3CD,stroke:#664D03,stroke-width:2;
-    classDef replicaNode fill:#E9ECEF,stroke:#6C757D,stroke-width:2;
-    classDef globalNode fill:#DAE5F0,stroke:#0C4F7F,stroke-width:2;
-    classDef proxyNode fill:#F8D7DA,stroke:#721C24,stroke-width:2;
-    classDef appNode fill:#D1E7DD,stroke:#0A3622,stroke-width:2;
+    subgraph Shard_N [Шард N (shop_id % 8 = 6,7)]
+        MN[(Master-N\nserver-id=10N)]
+        RNa[(Replica-1)]
+        RNb[(Replica-2)]
+        MN --> RNa & RNb
+    end
 
-    class A appNode;
-    class B proxyNode;
-    class SM1,SM2,SMN masterNode;
-    class SR1A,SR1B,SR2A,SR2B,SRNA,SRNB replicaNode;
-    class GR1,GR2,GR3 globalNode;
+    subgraph Global_Shard [Global Shard — справочные данные]
+        GR1[(Read-Replica-1)]
+        GR2[(Read-Replica-2)]
+        GR3[(Read-Replica-3)]
+    end
+
+    %% Связи
+    B --> Shard_1
+    B --> Shard_2
+    B --> Shard_N
+    B --> Global_Shard
+
+    %% Стили
+    classDef master fill:#f46666,stroke:#333,color:white
+    classDef replica fill:#66b3ff,stroke:#333,color:white
+    classDef proxy fill:#ffcc00,stroke:#333,color:black
+    classDef global fill:#95e1d3,stroke:#333,color:black
+
+    class M1,M2,MN master
+    class R1a,R1b,R1c,R2a,R2b,RNa,RNb,GR1,GR2,GR3 replica
+    class B proxy
+    class Global_Shard global
 ```
